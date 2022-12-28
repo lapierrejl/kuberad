@@ -5,13 +5,13 @@ config.load_kube_config()
 
 def get_kube_contexts(current: bool = False):
     contexts, current_context = config.list_kube_config_contexts()
-    print(current_context)
     if current:
         context_names = [current_context['name']]
     else:
         context_names = [context['name'] for context in contexts]
     
     return context_names
+    
 
 class K8sApiClient:
     def __init__(self, apiclient, 
@@ -209,8 +209,16 @@ class Storage(K8sApiClient):
         return self._find_all_removed_apis(resp.items, type='csi_driver')        
 
     def find_removed_apis_csi_nodes(self):
-        resp = self.client.list_csi_node(watch=False)
-        return self._find_all_removed_apis(resp.items, type='csi_node')        
+        removed_apis = []
+        try:
+            resp = self.client.list_csi_node(watch=False)
+            removed_apis = self._find_all_removed_apis(resp.items, type='csi_node')
+        except ValueError as e:
+            # Client errors when node has no drivers installed
+            # https://github.com/kubernetes-client/python/issues/1909
+            pass
+
+        return removed_apis        
 
     def find_removed_apis_storage_classes(self):
         resp = self.client.list_storage_class(watch=False)
