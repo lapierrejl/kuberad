@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y \
  make \
  curl \
  unzip \
+ gcc \
+ python3-dev \
  && rm -rf /var/lib/apt/lists/*
-
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "awscliv2.zip" && \
 unzip awscliv2.zip && \
 ./aws/install
 
